@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráfica de Solicitudes por Mes</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #solicitudesChart {
+            max-width: 90vw;
+            max-height: 80vh;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>Gráfica de Solicitudes por Mes</h1>
+        <h3>Ayudas TICs</h3>
+        <canvas id="solicitudesChart"></canvas>
+    </div>
+    <script>
+        fetch('/api/solicitudesPorMes')
+            .then(response => response.json())
+            .then(data => {
+                const labels = data.data.map(item => Mes `${item._id}`);
+                const values = data.data.map(item => item.cantidad);
+
+                const ctx = document.getElementById('solicitudesChart').getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Número de Solicitudes',
+                            data: values,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            });
+    </script>
+</body>
+</html>

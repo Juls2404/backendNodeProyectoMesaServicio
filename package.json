@@ -6,30 +6,47 @@
   "scripts": {
     "start": "node ./app.js",
     "dev": "nodemon ./app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --verbose",
+    "type": "commonjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "chart.js": "^4.4.4",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
     "express": "^4.19.2",
     "express-validator": "^7.1.0",
+    "favicon": "^0.0.2",
+    "fs": "^0.0.1-security",
     "joi": "^17.13.1",
     "jsonwebtoken": "^9.0.2",
+    "kit": "^0.1.2",
     "luxon": "^3.5.0",
     "mongoose": "^8.4.1",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.14",
-    "pdf-lib": "^1.17.1"
+    "pdf-lib": "^1.17.1",
+    "pdfkit": "^0.15.0",
+    "pdfkit-table": "^0.1.99"
   },
   "devDependencies": {
     "jest": "^29.7.0",
     "morgan": "^1.10.0",
     "nodemon": "^3.1.4",
     "supertest": "^7.0.0"
+  },
+  "jest": {
+    "displayName": "Ecommerce",
+    "globals": {
+      "PROJECT_NAME": "Ecommerce TD"
+    },
+    "bail": 20,
+    "verbose": true,
+    "testEnvironment": "node"
   }
 }
