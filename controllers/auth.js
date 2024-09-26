@@ -6,7 +6,7 @@ const { tokenSign } = require("../utils/handleJwt");
 const {handleHttpError} = require ("../utils/handleError.js");
 const PUBLIC_URL = process.env.PUBLIC_URL || "http://localhost:3010";
 const jwt = require("jsonwebtoken");
-
+const isProduction = process.env.NODE_ENV === 'production';
 
 
 
@@ -75,16 +75,22 @@ const loginCtrl = async (req, res) => {
 
 
         // Encontrar el usuario por su correo y seleccionar la contraseña
-        const user = await usuarioModel.findOne({ correo }).select('password correo rol estado').populate('foto', 'url')
+        const user = await usuarioModel.findOne({ correo }).select('password correo rol estado activo').populate('foto', 'url')
        
         if (!user) {
             return handleHttpError(res, "usuario no existe", 404);
         }
 
-        // Verificar si el usuario es Técnico y si su estado es false
+        // Verificar si el usuario es Técnico y si su estado de registro es false
         if (user.rol === 'tecnico' && user.estado === false) {
             return res.status(403).send({ message: `Su registro se encuentra sujeto a aprobación
                 por parte del Líder TIC. Una vez sea aprobado, podrá ingresar al sistema. ¡Gracias!` });
+        }
+
+        // ------------ Verificar si el usuario se encuentra activo
+        if (user.activo === false) {
+            return res.status(403).send({ message: `En el momento su ingreso se encuentra inactivado
+                por parte del Líder TIC. Una vez sea reactivado, podrá ingresar al sistema. ¡Gracias!` });
         }
 
 
@@ -103,15 +109,21 @@ const loginCtrl = async (req, res) => {
         user.set('password', undefined, {strict:false}) // oculta contraseña
         const token = await tokenSign(user);
         const dataUser = {
-            token: await tokenSign(user),
+            token,
             user
         };
-
+/* 
     res.cookie("token", token, {
             secure: true,
             sameSite: "none",
-            httpOnly: false
-        });
+            httpOnly: true
+        }); */
+
+      /*   res.cookie('token', token, {
+            httpOnly: true, // Hace que la cookie no sea accesible mediante JavaScript en el cliente
+            secure: isProduction, // Usa 'Secure' solo si está en producción (es decir, en HTTPS) contexto donde el frontend está ejecutando la solicitud.
+            sameSite: isProduction ? 'None' : 'Lax', // En producción usa 'None', en desarrollo puedes usar 'Lax'
+          }); */
 
         res.json({  message: "Usuario ha ingresado exitosamente", dataUser});
     } catch (error) {
@@ -124,7 +136,7 @@ const loginCtrl = async (req, res) => {
 };
 
 
-const verifyToken = async (req, res) => {
+/* const verifyToken = async (req, res) => {
 
     const { token } = req.cookies;
 
@@ -148,11 +160,44 @@ const verifyToken = async (req, res) => {
             error: error.message
         });
     }
-}
+} */
+
+    const verifyToken = async (req, res) => {
+        const authHeader = req.headers.authorization;
+    
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(400).json({ message: 'Sin autorización o formato de token incorrecto' });
+        }
+    
+        const token = authHeader.split(' ')[1]; // Extraer el token
+    
+        try {
+            const user = await new Promise((resolve, reject) => {
+                jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+                    if (err) {
+                        return reject('Token inválido o expirado');
+                    }
+                    resolve(decoded);
+                });
+            });
+    
+            const foundUser = await usuarioModel.findOne({ _id: user._id });
+            if (!foundUser) {
+                return res.status(400).json({ message: 'Usuario no encontrado' });
+            }
+    
+            return res.status(200).json(foundUser);
+        } catch (error) {
+            res.status(500).json({
+                message: 'Error al verificar el token',
+                error: error,
+            });
+        }
+    };
+    
 
 
-
-const createLogout =  (req, res) => {
+/* const createLogout =  (req, res) => {
 
     try {
         
@@ -168,7 +213,20 @@ const createLogout =  (req, res) => {
         });
     }
 
-}
+} */
+
+    const createLogout = (req, res) => {
+        try {
+            // No es necesario modificar ninguna cookie ya que estás usando localStorage para el token
+            res.status(200).json({message: "Sesión cerrada exitosamente!"});
+        } catch (error) {
+            res.status(500).json({
+                message: 'Error al cerrar la sesión',
+                error: error.message
+            });
+        }
+    }
+    
 
 
 module.exports = { registerCtrl, loginCtrl, verifyToken, createLogout };

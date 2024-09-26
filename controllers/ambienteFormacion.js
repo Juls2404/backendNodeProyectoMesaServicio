@@ -1,41 +1,33 @@
-const { ambienteModel } = require("../models");
-const { handleHttpError } = require("../utils/handleError");
-const mongoose = require('mongoose');
+const{ambienteModel} = require("../models")
+const {handleHttpError} = require("../utils/handleError")
+
+
 
 const getAmbiente = async (req, res) => {
     try {
         const data = await ambienteModel.find({ activo: true });
-        res.status(200).send({ data });
+        res.send({ data });
     } catch (error) {
-        handleHttpError(res, "Error al obtener datos de ambiente de formación", 500);
+        handleHttpError(res, "Error al obtener datos de ambiente de formación");
     }
-};
+}
+
+
 
 const getAmbienteId = async (req, res) => {
     try {
         const { id } = req.params;
-
-        // Verificar si el ID es válido antes de buscar el ambiente
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "ID de ambiente inválido" });
-        }
-
-        // Buscar el ambiente activo
-        const data = await ambienteModel.findOne({ _id: id, activo: true });
-
-        // Si no se encuentra el ambiente
+        const data = await ambienteModel.findOne({ _id: id });
         if (!data) {
-            return res.status(404).json({ message: "Ambiente de formación no encontrado" });
+            handleHttpError(res, "Ambiente de formación no encontrado", 404);
+            return;
         }
-
-        // Si se encuentra el ambiente, responde con éxito
-        res.status(200).json({ message: "Ambiente de formación consultado exitosamente", data });
-
+        res.send({ message: "Ambiente de formación consultado exitosamente", data });
     } catch (error) {
-        console.error("Error al consultar el ambiente:", error);  // Loguear el error para más detalles
-        return res.status(500).json({ message: "Error al consultar el ambiente de formación" });
+        handleHttpError(res, "Error al consultar el ambiente de formación");
     }
-};
+}
+
 
 const postAmbiente = async (req, res) => {
     const { body } = req;
@@ -47,7 +39,9 @@ const postAmbiente = async (req, res) => {
     }
 };
 
-const updateAmbiente = async (req, res) => {
+
+
+const updateAmbiente = async(req, res) => {
     const ambienteId = req.params.id;
     const { body } = req;
 
@@ -59,16 +53,19 @@ const updateAmbiente = async (req, res) => {
         );
 
         if (!data) {
-            return res.status(404).json({ message: "Ambiente de formación no encontrado" });
+            handleHttpError(res, "Ambiente de formación no encontrado", 404);
+            return;
         }
 
-        res.status(200).send({ message: `Ambiente de formación ${ambienteId} actualizado exitosamente`, data });
+        res.send({ message: `Ambiente de formación ${ambienteId} actualizado exitosamente`, data });
     } catch (error) {
-        handleHttpError(res, "Error al actualizar el ambiente de formación", 500);
+        handleHttpError(res, "Error al actualizar el ambiente de formación");
     }
-};
+}
 
-const deleteAmbiente = async (req, res) => {
+
+
+const inactivarAmbiente = async(req, res) => {
     const ambienteId = req.params.id;
 
     try {
@@ -80,15 +77,22 @@ const deleteAmbiente = async (req, res) => {
         );
 
         if (!data) {
-            return res.status(404).json({ message: "Ambiente de formación no encontrado" });
+            handleHttpError(res, "Ambiente de formación no encontrado", 404);
+            return;
         }
 
-        res.status(200).send({ message: `Ambiente de formación ${ambienteId} desactivado exitosamente`, data });
+        res.send({ message: `Ambiente de formación ${ambienteId} desactivado exitosamente`, data });
 
     } catch (error) {
-        handleHttpError(res, "Error al desactivar el ambiente de formación", 500);
+        handleHttpError(res, "Error al desactivar el ambiente de formación");
     }
 };
 
-module.exports = { getAmbiente, getAmbienteId, postAmbiente, updateAmbiente, deleteAmbiente };
 
+
+module.exports = { getAmbiente, getAmbienteId, postAmbiente, updateAmbiente, inactivarAmbiente };
+
+
+
+
+// const usuario = req.usuario permite saber quien hace la peticion
